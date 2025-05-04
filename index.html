@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Color Palette Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Color Palette Generator</h1>
+        
+        <div class="controls">
+            <button id="generate-btn">Generate New Colors</button>
+            <div class="format-selector">
+                <label>Color Format:</label>
+                <select id="color-format">
+                    <option value="hex">HEX</option>
+                    <option value="rgb">RGB</option>
+                    <option value="hsl">HSL</option>
+                </select>
+            </div>
+            <div class="color-picker">
+                <label>Custom Color:</label>
+                <input type="color" id="custom-color" value="#ff0000">
+            </div>
+            <div class="harmony-selector">
+                <label>Color Harmony:</label>
+                <select id="harmony-type">
+                    <option value="random">Random</option>
+                    <option value="complementary">Complementary</option>
+                    <option value="analogous">Analogous</option>
+                    <option value="triadic">Triadic</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="colors-container">
+            <!-- Color boxes will be generated here -->
+        </div>
+
+        <div class="export-options">
+            <button id="export-css">Export as CSS</button>
+            <button id="export-json">Export as JSON</button>
+            <button id="save-palette">Save Palette</button>
+        </div>
+
+        <div class="saved-palettes">
+            <h2>Saved Palettes</h2>
+            <div id="palettes-container"></div>
+        </div>
+    </div>
+
+    <div class="toast"></div>
+    <script src="script.js"></script>
+</body>
+</html> 
