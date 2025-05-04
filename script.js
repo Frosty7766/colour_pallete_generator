@@ -18,15 +18,12 @@ function hexToRgb(hex) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-function hexToHsl(hex) {
+function hexToHSLObj(hex) {
     let r = parseInt(hex.slice(1, 3), 16) / 255;
     let g = parseInt(hex.slice(3, 5), 16) / 255;
     let b = parseInt(hex.slice(5, 7), 16) / 255;
-
-    let max = Math.max(r, g, b);
-    let min = Math.min(r, g, b);
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
-
     if (max === min) {
         h = s = 0;
     } else {
@@ -39,48 +36,51 @@ function hexToHsl(hex) {
         }
         h /= 6;
     }
+    return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        l: Math.round(l * 100)
+    };
+}
 
-    h = Math.round(h * 360);
-    s = Math.round(s * 100);
-    l = Math.round(l * 100);
-
-    return `hsl(${h}, ${s}%, ${l}%)`;
+function hslToHex(h, s, l) {
+    s /= 100;
+    l /= 100;
+    let c = (1 - Math.abs(2 * l - 1)) * s;
+    let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    let m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+    if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+    else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+    else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+    else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+    else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+    else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+    r = Math.round((r + m) * 255);
+    g = Math.round((g + m) * 255);
+    b = Math.round((b + m) * 255);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
 // Color harmony functions
 function getComplementaryColor(hex) {
-    const r = 255 - parseInt(hex.slice(1, 3), 16);
-    const g = 255 - parseInt(hex.slice(3, 5), 16);
-    const b = 255 - parseInt(hex.slice(5, 7), 16);
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    const hsl = hexToHSLObj(hex);
+    let newHue = (hsl.h + 180) % 360;
+    return hslToHex(newHue, hsl.s, hsl.l);
 }
 
 function getAnalogousColors(hex) {
-    const h = parseInt(hex.slice(1, 3), 16);
-    const s = parseInt(hex.slice(3, 5), 16);
-    const l = parseInt(hex.slice(5, 7), 16);
-    
-    const h1 = (h + 30) % 256;
-    const h2 = (h - 30 + 256) % 256;
-    
-    return [
-        `#${h1.toString(16).padStart(2, '0')}${s.toString(16).padStart(2, '0')}${l.toString(16).padStart(2, '0')}`,
-        `#${h2.toString(16).padStart(2, '0')}${s.toString(16).padStart(2, '0')}${l.toString(16).padStart(2, '0')}`
-    ];
+    const hsl = hexToHSLObj(hex);
+    let h1 = (hsl.h + 30) % 360;
+    let h2 = (hsl.h + 330) % 360; // -30 is +330 mod 360
+    return [hslToHex(h1, hsl.s, hsl.l), hslToHex(h2, hsl.s, hsl.l)];
 }
 
 function getTriadicColors(hex) {
-    const h = parseInt(hex.slice(1, 3), 16);
-    const s = parseInt(hex.slice(3, 5), 16);
-    const l = parseInt(hex.slice(5, 7), 16);
-    
-    const h1 = (h + 120) % 256;
-    const h2 = (h + 240) % 256;
-    
-    return [
-        `#${h1.toString(16).padStart(2, '0')}${s.toString(16).padStart(2, '0')}${l.toString(16).padStart(2, '0')}`,
-        `#${h2.toString(16).padStart(2, '0')}${s.toString(16).padStart(2, '0')}${l.toString(16).padStart(2, '0')}`
-    ];
+    const hsl = hexToHSLObj(hex);
+    let h1 = (hsl.h + 120) % 360;
+    let h2 = (hsl.h + 240) % 360;
+    return [hslToHex(h1, hsl.s, hsl.l), hslToHex(h2, hsl.s, hsl.l)];
 }
 
 // Generate random hex color
@@ -99,7 +99,7 @@ function formatColor(color, format) {
         case 'rgb':
             return hexToRgb(color);
         case 'hsl':
-            return hexToHsl(color);
+            return hexToHSLObj(color);
         default:
             return color;
     }
@@ -109,6 +109,7 @@ function formatColor(color, format) {
 function createColorBox(color, isLocked = false) {
     const colorBox = document.createElement('div');
     colorBox.className = 'color-box';
+    colorBox.dataset.hex = color;
     
     const colorElement = document.createElement('div');
     colorElement.className = 'color';
@@ -156,31 +157,32 @@ function createColorBox(color, isLocked = false) {
 
 // Generate colors based on harmony type
 function generateColors() {
-    colorsContainer.innerHTML = '';
-    const baseColor = generateRandomColor();
-    let colors = [baseColor];
-
-    switch (harmonyType.value) {
-        case 'complementary':
-            colors.push(getComplementaryColor(baseColor));
-            break;
-        case 'analogous':
-            colors = [baseColor, ...getAnalogousColors(baseColor)];
-            break;
-        case 'triadic':
-            colors = [baseColor, ...getTriadicColors(baseColor)];
-            break;
-        default:
-            // Random colors
-            for (let i = 1; i < 5; i++) {
-                colors.push(generateRandomColor());
-            }
+    let colors = [];
+    let count = 5;
+    let harmony = harmonyType.value;
+    let baseColor = generateRandomColor();
+    if (harmony === 'complementary') {
+        colors = [baseColor, getComplementaryColor(baseColor)];
+        count = 2;
+    } else if (harmony === 'analogous') {
+        const analogous = getAnalogousColors(baseColor);
+        colors = [baseColor, ...analogous];
+        count = 3;
+    } else if (harmony === 'triadic') {
+        const triadic = getTriadicColors(baseColor);
+        colors = [baseColor, ...triadic];
+        count = 3;
+    } else {
+        for (let i = 0; i < 5; i++) {
+            colors.push(generateRandomColor());
+        }
+        count = 5;
     }
-
-    colors.forEach(color => {
-        const colorBox = createColorBox(color);
+    colorsContainer.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const colorBox = createColorBox(colors[i]);
         colorsContainer.appendChild(colorBox);
-    });
+    }
 }
 
 // Show toast notification
@@ -218,27 +220,76 @@ function exportAsJSON() {
     });
 }
 
+// Persistent palette storage
+function getSavedPalettes() {
+    return JSON.parse(localStorage.getItem('savedPalettes') || '[]');
+}
+
+function setSavedPalettes(palettes) {
+    localStorage.setItem('savedPalettes', JSON.stringify(palettes));
+}
+
+function renderSavedPalettes() {
+    palettesContainer.innerHTML = '';
+    const palettes = getSavedPalettes();
+    palettes.forEach((palette, idx) => {
+        const paletteDiv = document.createElement('div');
+        paletteDiv.className = 'saved-palette';
+
+        const colorsDiv = document.createElement('div');
+        colorsDiv.className = 'saved-palette-colors';
+        palette.forEach(color => {
+            const colorDiv = document.createElement('div');
+            colorDiv.className = 'saved-color';
+            colorDiv.style.backgroundColor = color;
+            colorsDiv.appendChild(colorDiv);
+        });
+
+        // Use button
+        const useBtn = document.createElement('button');
+        useBtn.textContent = 'Use';
+        useBtn.onclick = () => {
+            loadPaletteToMain(palette);
+        };
+
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = () => {
+            const newPalettes = getSavedPalettes();
+            newPalettes.splice(idx, 1);
+            setSavedPalettes(newPalettes);
+            renderSavedPalettes();
+            showToast('Palette deleted!');
+        };
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.style.marginTop = '0.5rem';
+        actionsDiv.appendChild(useBtn);
+        actionsDiv.appendChild(deleteBtn);
+
+        paletteDiv.appendChild(colorsDiv);
+        paletteDiv.appendChild(actionsDiv);
+        palettesContainer.appendChild(paletteDiv);
+    });
+}
+
+function loadPaletteToMain(palette) {
+    colorsContainer.innerHTML = '';
+    palette.forEach(color => {
+        const colorBox = createColorBox(color);
+        colorsContainer.appendChild(colorBox);
+    });
+}
+
 function savePalette() {
     const colors = Array.from(colorsContainer.querySelectorAll('.color-box')).map(box => {
         return box.querySelector('.color').style.backgroundColor;
     });
-
-    const palette = document.createElement('div');
-    palette.className = 'saved-palette';
-    
-    const colorsDiv = document.createElement('div');
-    colorsDiv.className = 'saved-palette-colors';
-    
-    colors.forEach(color => {
-        const colorDiv = document.createElement('div');
-        colorDiv.className = 'saved-color';
-        colorDiv.style.backgroundColor = color;
-        colorsDiv.appendChild(colorDiv);
-    });
-    
-    palette.appendChild(colorsDiv);
-    palettesContainer.appendChild(palette);
-    
+    const palettes = getSavedPalettes();
+    palettes.push(colors);
+    setSavedPalettes(palettes);
+    renderSavedPalettes();
     showToast('Palette saved!');
 }
 
@@ -248,8 +299,8 @@ generateBtn.addEventListener('click', generateColors);
 colorFormat.addEventListener('change', () => {
     const colorBoxes = colorsContainer.querySelectorAll('.color-box');
     colorBoxes.forEach(box => {
-        const color = box.querySelector('.color').style.backgroundColor;
-        box.querySelector('.color-value').textContent = formatColor(color, colorFormat.value);
+        const hex = box.dataset.hex;
+        box.querySelector('.color-value').textContent = formatColor(hex, colorFormat.value);
     });
 });
 
@@ -271,3 +322,6 @@ savePaletteBtn.addEventListener('click', savePalette);
 // Generate initial colors
 generateColors(); 
 generateColors(); 
+
+// On page load, render saved palettes
+renderSavedPalettes(); 
