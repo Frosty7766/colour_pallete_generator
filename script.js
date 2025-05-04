@@ -159,6 +159,15 @@ function createColorBox(color, isLocked = false) {
 // Generate colors based on harmony type
 function generateColors() {
     const existingBoxes = Array.from(colorsContainer.querySelectorAll('.color-box'));
+    let lockedColors = [];
+    let lockedPositions = [];
+    existingBoxes.forEach((box, idx) => {
+        if (box.dataset.locked === 'true') {
+            lockedColors.push(box.dataset.hex);
+            lockedPositions.push(idx);
+        }
+    });
+
     let colors = [];
     let count = 5;
     let harmony = harmonyType.value;
@@ -166,46 +175,33 @@ function generateColors() {
     if (harmony === 'complementary') {
         let harmonyColors = [baseColor, getComplementaryColor(baseColor)];
         count = 2;
-        for (let i = 0; i < count; i++) {
-            if (existingBoxes[i]?.dataset.locked === 'true') {
-                colors[i] = existingBoxes[i].dataset.hex;
-            } else {
-                colors[i] = harmonyColors[i];
-            }
-        }
+        colors = harmonyColors.slice();
     } else if (harmony === 'analogous') {
         let harmonyColors = [baseColor, ...getAnalogousColors(baseColor)];
         count = 3;
-        for (let i = 0; i < count; i++) {
-            if (existingBoxes[i]?.dataset.locked === 'true') {
-                colors[i] = existingBoxes[i].dataset.hex;
-            } else {
-                colors[i] = harmonyColors[i];
-            }
-        }
+        colors = harmonyColors.slice();
     } else if (harmony === 'triadic') {
         let harmonyColors = [baseColor, ...getTriadicColors(baseColor)];
         count = 3;
-        for (let i = 0; i < count; i++) {
-            if (existingBoxes[i]?.dataset.locked === 'true') {
-                colors[i] = existingBoxes[i].dataset.hex;
-            } else {
-                colors[i] = harmonyColors[i];
-            }
-        }
+        colors = harmonyColors.slice();
     } else {
         count = 5;
         for (let i = 0; i < count; i++) {
-            if (existingBoxes[i]?.dataset.locked === 'true') {
-                colors[i] = existingBoxes[i].dataset.hex;
-            } else {
-                colors[i] = generateRandomColor();
-            }
+            colors.push(generateRandomColor());
         }
     }
+
+    // Place locked colors in their original positions (if possible)
+    lockedPositions.forEach((pos, i) => {
+        if (pos < count) {
+            colors[pos] = lockedColors[i];
+        }
+    });
+
     colorsContainer.innerHTML = '';
     for (let i = 0; i < count; i++) {
-        const isLocked = existingBoxes[i]?.dataset.locked === 'true';
+        // If this position was locked, keep it locked
+        const isLocked = lockedPositions.includes(i);
         const colorBox = createColorBox(colors[i], isLocked);
         if (isLocked) colorBox.dataset.locked = 'true';
         colorsContainer.appendChild(colorBox);
