@@ -355,6 +355,7 @@ customColor.addEventListener('input', () => {
         const firstBox = colorBoxes[0];
         firstBox.querySelector('.color').style.backgroundColor = customColor.value;
         firstBox.querySelector('.color-value').textContent = formatColor(customColor.value, colorFormat.value);
+        firstBox.dataset.hex = customColor.value;
     }
 });
 
