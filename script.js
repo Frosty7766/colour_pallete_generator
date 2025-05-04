@@ -99,7 +99,8 @@ function formatColor(color, format) {
         case 'rgb':
             return hexToRgb(color);
         case 'hsl':
-            return hexToHSLObj(color);
+            const hsl = hexToHSLObj(color);
+            return `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
         default:
             return color;
     }
@@ -157,30 +158,56 @@ function createColorBox(color, isLocked = false) {
 
 // Generate colors based on harmony type
 function generateColors() {
+    const existingBoxes = Array.from(colorsContainer.querySelectorAll('.color-box'));
     let colors = [];
     let count = 5;
     let harmony = harmonyType.value;
     let baseColor = generateRandomColor();
     if (harmony === 'complementary') {
-        colors = [baseColor, getComplementaryColor(baseColor)];
+        let harmonyColors = [baseColor, getComplementaryColor(baseColor)];
         count = 2;
-    } else if (harmony === 'analogous') {
-        const analogous = getAnalogousColors(baseColor);
-        colors = [baseColor, ...analogous];
-        count = 3;
-    } else if (harmony === 'triadic') {
-        const triadic = getTriadicColors(baseColor);
-        colors = [baseColor, ...triadic];
-        count = 3;
-    } else {
-        for (let i = 0; i < 5; i++) {
-            colors.push(generateRandomColor());
+        for (let i = 0; i < count; i++) {
+            if (existingBoxes[i]?.dataset.locked === 'true') {
+                colors[i] = existingBoxes[i].dataset.hex;
+            } else {
+                colors[i] = harmonyColors[i];
+            }
         }
+    } else if (harmony === 'analogous') {
+        let harmonyColors = [baseColor, ...getAnalogousColors(baseColor)];
+        count = 3;
+        for (let i = 0; i < count; i++) {
+            if (existingBoxes[i]?.dataset.locked === 'true') {
+                colors[i] = existingBoxes[i].dataset.hex;
+            } else {
+                colors[i] = harmonyColors[i];
+            }
+        }
+    } else if (harmony === 'triadic') {
+        let harmonyColors = [baseColor, ...getTriadicColors(baseColor)];
+        count = 3;
+        for (let i = 0; i < count; i++) {
+            if (existingBoxes[i]?.dataset.locked === 'true') {
+                colors[i] = existingBoxes[i].dataset.hex;
+            } else {
+                colors[i] = harmonyColors[i];
+            }
+        }
+    } else {
         count = 5;
+        for (let i = 0; i < count; i++) {
+            if (existingBoxes[i]?.dataset.locked === 'true') {
+                colors[i] = existingBoxes[i].dataset.hex;
+            } else {
+                colors[i] = generateRandomColor();
+            }
+        }
     }
     colorsContainer.innerHTML = '';
     for (let i = 0; i < count; i++) {
-        const colorBox = createColorBox(colors[i]);
+        const isLocked = existingBoxes[i]?.dataset.locked === 'true';
+        const colorBox = createColorBox(colors[i], isLocked);
+        if (isLocked) colorBox.dataset.locked = 'true';
         colorsContainer.appendChild(colorBox);
     }
 }
@@ -277,9 +304,31 @@ function renderSavedPalettes() {
 function loadPaletteToMain(palette) {
     colorsContainer.innerHTML = '';
     palette.forEach(color => {
-        const colorBox = createColorBox(color);
+        // Always use hex value for color box and display
+        let hex = color;
+        // If color is not hex, try to convert it (for backward compatibility)
+        if (!/^#([0-9A-Fa-f]{6})$/.test(hex)) {
+            // Try to parse rgb or hsl to hex (simple fallback)
+            try {
+                hex = rgbStringToHex(color) || hex;
+            } catch {}
+        }
+        const colorBox = createColorBox(hex);
         colorsContainer.appendChild(colorBox);
     });
+}
+
+// Helper to convert rgb string to hex
+function rgbStringToHex(rgb) {
+    if (!rgb.startsWith('rgb')) return null;
+    const nums = rgb.match(/\d+/g).map(Number);
+    return (
+        '#' +
+        nums
+            .map(x => x.toString(16).padStart(2, '0'))
+            .join('')
+            .toUpperCase()
+    );
 }
 
 function savePalette() {
