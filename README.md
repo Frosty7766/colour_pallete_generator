@@ -1,49 +1,47 @@
 # Advanced Color Palette Generator
 
-A modern web application for generating, managing, and exporting color palettes. Built with HTML, CSS, and JavaScript.
+A modern, dark-themed web app for generating, managing, and exporting color palettes. Built with HTML, CSS, and JavaScript.
 
 ## Features
 
-- Generate random color palettes
-- Multiple color formats (HEX, RGB, HSL)
-- Color harmony options (Complementary, Analogous, Triadic)
-- Custom color picker
-- Export as CSS variables or JSON
-- Save favorite palettes
-- Copy colors to clipboard
-- Responsive design
+- **Generate random color palettes**
+- **Color harmonies:** Complementary, Analogous, Triadic (with correct color theory logic)
+- **Color format toggle:** HEX, RGB, HSL
+- **Custom color picker** (with lock support)
+- **Lock colors** to keep them across generations and harmony changes
+- **Export as CSS variables or JSON**
+- **Save, reuse, and delete palettes** (persistent in your browser)
+- **Responsive, visually appealing dark mode**
+- **Copy color to clipboard**
 
-## Live Demo
+## Usage
 
-[View Live Demo](https://color-palette-generator-vercel.vercel.app)
+1. Click **Generate New Colors** to create a palette.
+2. Choose a **Color Harmony** (Random, Complementary, Analogous, Triadic).
+3. Use the **Color Picker** to set the first color.
+4. **Lock** any color to keep it when generating new palettes or switching harmonies.
+5. Switch between **HEX, RGB, HSL** formats.
+6. **Export** your palette as CSS or JSON.
+7. **Save** palettes for later, and reuse or delete them as needed.
 
 ## Technologies Used
 
 - HTML5
-- CSS3
+- CSS3 (with Google Fonts and dark mode)
 - JavaScript (ES6+)
 - Font Awesome Icons
 
-## Setup
+## Local Setup
 
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/color-palette-generator.git
-```
+   ```bash
+   git clone https://github.com/Frosty7766/colour_pallete_generator.git
+   ```
+2. Open `index.html` in your browser, or run a local server:
+   ```bash
+   python -m http.server 8000
+   ```
 
-2. Open `index.html` in your browser or use a local server:
-```bash
-python -m http.server 8000
-```
+## Live Demo
 
-## Usage
-
-1. Click "Generate New Colors" to create a random palette
-2. Use the color picker to select custom colors
-3. Choose color format and harmony type
-4. Lock colors you want to keep
-5. Export or save your palettes
-
-## License
-
-MIT 
+[https://colour-pallete-generator.vercel.app/](https://colour-pallete-generator.vercel.app/) 
